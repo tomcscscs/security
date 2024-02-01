@@ -1,6 +1,9 @@
 package org.edupoll.app.controller;
 
+import org.edupoll.app.command.Registration;
+import org.edupoll.app.entity.Account;
 import org.edupoll.app.repository.AccountRepository;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,8 +20,6 @@ import lombok.RequiredArgsConstructor;
 
 public class RegisterController {
 	private final AccountRepository accountRepository;
-	
-
 
 	@GetMapping("/registerform")
 	public String showRegisterForm(Model model) {
@@ -26,26 +27,21 @@ public class RegisterController {
 		return "/register/register-form";
 
 	}
-	
-	   @PostMapping("/register/{userId}")
-	    public String registerUser(@PathVariable String userId, @RequestParam(required = false) String password, @RequestParam(required = false) String nickname, @RequestParam(required = false) String userLevel) {
 
+	@PostMapping("/register/")
+	public String registerUser(Registration cmd) {
+		if (accountRepository.findById(cmd.getId()).isPresent()) {
+			return "redirect:/register?error";
+		}
 
-	        return "redirect:/home"; // 회원가입 후 리다이렉트할 경로
-	    }
+		BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
+		String encodedPassword = bCryptPasswordEncoder.encode(cmd.getPassword());
+
+		Account one = Account.builder().id(cmd.getId()).password("{bcrypt}" + encodedPassword)
+				.nickname(cmd.getNickname()).build();
+		accountRepository.save(one);
+
+		return "redirect:/login";
+
 	}
-	
-	
-	
-	
-		
-		
-	}
-	
-
-
-
-
-
-
-
+}
