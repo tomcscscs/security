@@ -27,9 +27,10 @@ public class SecuirtyConfig {
 
 		// 1. restricting access configuration
 		http.authorizeHttpRequests(t -> 
-			t.requestMatchers("/", "/index").permitAll().requestMatchers("/register/**").permitAll()
+			t.requestMatchers("/", "/index").permitAll()
+				.requestMatchers("/register").permitAll()
 				.anyRequest().authenticated());
-
+		http.anonymous(t -> t.disable());
 		// 2 .custom login form configuration
 		http.formLogin(t -> t.loginPage("/login").permitAll());
 //		http.formLogin(t -> t.loginPage("/login").permitAll().usernameParameter("id").passwordParameter("pass"));
@@ -41,7 +42,6 @@ public class SecuirtyConfig {
 
 	@Bean
 	public UserDetailsService jpaUsers(AccountRepository accountRepository) {
-		
 		return new CustomUserDetailsService(accountRepository);
 	}
 	

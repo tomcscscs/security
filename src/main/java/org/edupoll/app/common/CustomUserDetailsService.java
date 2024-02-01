@@ -28,8 +28,8 @@ public class CustomUserDetailsService implements UserDetailsService {
 		Account account = optional.orElseThrow(() -> {
 			return new UsernameNotFoundException(username + " is not exist.");
 		});
-
-		return User.builder().username(account.getId()).password(account.getPassword()).build();
+		return CustomUserDetails.builder().account(account).build();
+//		return new CustomUserDetails(account);
 	}
 
 }
