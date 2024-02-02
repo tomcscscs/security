@@ -17,6 +17,8 @@ import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.provisioning.JdbcUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 
+import jakarta.servlet.DispatcherType;
+
 @Configuration
 public class SecuirtyConfig {
 
@@ -26,17 +28,25 @@ public class SecuirtyConfig {
 		// http.csrf(t -> t.disable());
 
 		// 1. restricting access configuration
-		http.authorizeHttpRequests(t -> 
-			t.requestMatchers("/", "/index").permitAll()
-				.requestMatchers("/register").permitAll()
+		http.authorizeHttpRequests(t ->
+
+		t.dispatcherTypeMatchers(DispatcherType.ERROR).permitAll() //
+				.requestMatchers("/", "/index", "/register", "/static/**").permitAll() //
+				.requestMatchers("/master/**").hasAuthority("MASTER") //
+				.requestMatchers("/expert/**").hasAnyAuthority("EXPERT", "MASTER") //
+				.requestMatchers("/beginner/**").hasAuthority("BEGINNER") //
 				.anyRequest().authenticated());
+
+//		http.authorizeHttpRequests(t->t.anyRequest().permitAll());
 		http.anonymous(t -> t.disable());
+
 		// 2 .custom login form configuration
 		http.formLogin(t -> t.loginPage("/login").permitAll());
 //		http.formLogin(t -> t.loginPage("/login").permitAll().usernameParameter("id").passwordParameter("pass"));
 //		http.formLogin(t -> t.loginPage("/login").loginProcessingUrl("/login/proceed").permitAll());
 //		 http.formLogin(Customizer.withDefaults());
-		// http.logout(t-> t.);
+		// 3. custom logout configuration
+		http.logout(t -> t.logoutUrl("/auth/logout").logoutSuccessUrl("/").permitAll());
 		return http.build();
 	}
 
@@ -44,12 +54,11 @@ public class SecuirtyConfig {
 	public UserDetailsService jpaUsers(AccountRepository accountRepository) {
 		return new CustomUserDetailsService(accountRepository);
 	}
-	
-	
+
 	// 3. password storage configuration
 	public UserDetailsService jdbcUsers(DataSource dataSorurce) {
 		JdbcUserDetailsManager jdbcUserDetailsManager = new JdbcUserDetailsManager(dataSorurce);
-		
+
 		return jdbcUserDetailsManager;
 	}
 
